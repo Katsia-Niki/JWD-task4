@@ -26,7 +26,7 @@ public class Main {
             Truck truck7 = new Truck(106, false, 50, false);
             Truck truck8 = new Truck(107, true, 30, true);
             Truck truck9 = new Truck(108, false, 30, false);
-            Truck truck10 = new Truck(109, false, 40, true);
+            Truck truck10 = new Truck(109, true, 40, true);
 
             List<Truck> trucks = new ArrayList<>();
             trucks.add(truck1);
