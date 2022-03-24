@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -18,6 +19,7 @@ public class LogisticsBase {
     public static int TERMINAL_QUANTITY = 2;
     public static int MAX_SIZE = 1000;
     public static int DEFAULT_SIZE = MAX_SIZE / 4;
+    public static int MAX_TIME = 1000;
 
     private static LogisticsBase instance;
     private static Lock lockerCreator = new ReentrantLock();
@@ -59,27 +61,27 @@ public class LogisticsBase {
         goodsQuantity.addAndGet(-1 * quantity);
     }
 
-    public Terminal acquireTerminal(boolean parishableGoods) {
+    public Terminal acquireTerminal(boolean perishableGoods) {
         Terminal terminal = null;
         try {
             lock.lock();
-            TimeUnit.SECONDS.sleep(2);
+            TimeUnit.MILLISECONDS.sleep(new Random().nextInt(MAX_TIME));
             Condition condition = lock.newCondition();
             if (freeTerminals.isEmpty()) {
-                if (parishableGoods) {
+                if (perishableGoods) {
                     priorityQueue.addLast(condition);
-                    logger.info("priority queue get truck with parishable goods = " + parishableGoods);
+                    logger.info("priority queue get truck with perishable goods = " + perishableGoods);
                 } else {
                     nonPriorityQueue.addLast(condition);
-                    logger.info("non-priority queue get truck with parishable goods = " + parishableGoods);
+                    logger.info("non-priority queue get truck with perishable goods = " + perishableGoods);
                 }
                 condition.await();
             }
             terminal = freeTerminals.removeFirst();
             logger.info(Thread.currentThread().getName() + " acquire terminal " + terminal.getTerminalId() +
-                    " truck has parishable goods = " + parishableGoods);
+                    " truck has perishable goods = " + perishableGoods);
         } catch (InterruptedException e) {
-            logger.error("Thread " + Thread.currentThread().getName() + " was interrapted", e);
+            logger.error("Thread " + Thread.currentThread().getName() + " was interrupted", e);
             Thread.currentThread().interrupt();
         } finally {
             lock.unlock();
@@ -89,21 +91,15 @@ public class LogisticsBase {
 
     public void releaseTerminal(Terminal terminal) {
         Condition condition = null;
-        try {
-            lock.lock();
-            freeTerminals.addLast(terminal);
-            TimeUnit.SECONDS.sleep(2);
-            logger.info("Terminal " + terminal.getTerminalId() + " was released");
-            condition = priorityQueue.isEmpty() ? nonPriorityQueue.pollFirst() : priorityQueue.pollFirst();
-        } catch (InterruptedException e) {
-            logger.error("Thread " + Thread.currentThread().getName() + " was interrapted", e);
-            Thread.currentThread().interrupt();
-        } finally {
-            if (condition != null) {
-                condition.signal();
-            }
-            lock.unlock();
-        }
-    }
+        lock.lock();
+        freeTerminals.addLast(terminal);
+        logger.info("Terminal " + terminal.getTerminalId() + " was released");
+        condition = priorityQueue.isEmpty() ? nonPriorityQueue.pollFirst() : priorityQueue.pollFirst();
 
+        if (condition != null) {
+            condition.signal();
+        }
+        lock.unlock();
+    }
 }
+

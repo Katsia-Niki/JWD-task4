@@ -4,10 +4,10 @@ public class Truck extends Thread {
     private long truckId;
     private boolean perishableGoods;
     private int cargoSize;
-    private State truckState;
+    private TruckState truckState;
     private boolean uploading;
 
-    public enum State {
+    public enum TruckState {
         NEW, IN_PROCESS, FINISHED
     }
 
@@ -15,7 +15,7 @@ public class Truck extends Thread {
         this.truckId = truckId;
         this.perishableGoods = perishableGoods;
         this.cargoSize = cargoSize;
-        this.truckState = State.NEW;
+        this.truckState = TruckState.NEW;
         this.uploading = uploading;
     }
 
@@ -43,11 +43,11 @@ public class Truck extends Thread {
         this.perishableGoods = perishableGoods;
     }
 
-    public State getTruckState() {
+    public TruckState getTruckState() {
         return truckState;
     }
 
-    public void setTruckState(State truckState) {
+    public void setTruckState(TruckState truckState) {
         this.truckState = truckState;
     }
 
@@ -61,7 +61,7 @@ public class Truck extends Thread {
 
     @Override
     public void run() {
-        truckState = State.IN_PROCESS;
+        truckState = TruckState.IN_PROCESS;
         LogisticsBase logisticsBase = LogisticsBase.getInstance();
         Terminal terminal = null;
         try {
@@ -70,7 +70,7 @@ public class Truck extends Thread {
         } finally {
             logisticsBase.releaseTerminal(terminal);
         }
-        truckState = State.FINISHED;
+        truckState = TruckState.FINISHED;
     }
 
     @Override

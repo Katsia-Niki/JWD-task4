@@ -1,5 +1,6 @@
 package by.jwd.multithreading.main;
 
+
 import by.jwd.multithreading.entity.Truck;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

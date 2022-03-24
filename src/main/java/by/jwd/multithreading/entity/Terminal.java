@@ -1,6 +1,4 @@
 package by.jwd.multithreading.entity;
-
-
 import by.jwd.multithreading.util.IdCounter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -33,7 +31,7 @@ public class Terminal {
                 logisticsBase.addGoods(truck.getCargoSize());
             }
         } catch (InterruptedException e) {
-            logger.error("Thread" + Thread.currentThread().getName() + " was interrapted", e);
+            logger.error("Thread" + Thread.currentThread().getName() + " was interrupted", e);
             Thread.currentThread().interrupt();
         }
     }
