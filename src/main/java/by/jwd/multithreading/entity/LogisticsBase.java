@@ -6,6 +6,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Random;
+import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -16,10 +17,13 @@ import java.util.concurrent.locks.ReentrantLock;
 public class LogisticsBase {
     static Logger logger = LogManager.getLogger();
 
-    public static int TERMINAL_QUANTITY = 2;
+    public static int TERMINAL_QUANTITY = 4;
     public static int MAX_SIZE = 1000;
     public static int DEFAULT_SIZE = MAX_SIZE / 4;
+    public static int LOW_LIMIT = (int) Math.round(MAX_SIZE * 0.25);
+    public static int UPPER_LIMIT = (int) Math.round(MAX_SIZE * 0.75);
     public static int MAX_TIME = 1000;
+
 
     private static LogisticsBase instance;
     private static Lock lockerCreator = new ReentrantLock();
@@ -44,6 +48,7 @@ public class LogisticsBase {
                 lockerCreator.lock();
                 if (instance == null) {
                     instance = new LogisticsBase();
+                    startTimer();
                     created.set(true);
                 }
             } finally {
@@ -51,6 +56,11 @@ public class LogisticsBase {
             }
         }
         return instance;
+    }
+
+    public static void startTimer() {
+        Timer timer = new Timer();
+        timer.schedule(new CheckerTimerTask(), 100, 2000);
     }
 
     public void addGoods(int quantity) {
@@ -100,6 +110,16 @@ public class LogisticsBase {
             condition.signal();
         }
         lock.unlock();
+    }
+
+    public void checkGoodsQuantity() {
+        logger.info(Thread.currentThread().getName() + " checks quantity of goods ....  goods quantity = " + goodsQuantity);
+
+        int currentGoodsQuantity = goodsQuantity.get();
+        if ((currentGoodsQuantity < LOW_LIMIT) || (currentGoodsQuantity > UPPER_LIMIT)) {
+            goodsQuantity.set(DEFAULT_SIZE);
+            logger.info(Thread.currentThread().getName() + " quantity of goods was refreshed = " + goodsQuantity);
+        }
     }
 }
 
